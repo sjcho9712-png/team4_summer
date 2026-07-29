@@ -738,7 +738,7 @@
       html += '<div class="card">' +
         '<div class="card-title">팀 전체 합산 실적 <span class="chip admin">관리자 전용</span></div>' +
         '<div class="card-sub">팀원 전체 합산, 추가 인정비율을 반영하지 않은 실제 실적입니다.</div>' +
-        METRICS.map(function(m){ return metricBarHtml(m, teamTotals[m.key], teamTargets[m.key], p.paceExpectedPct); }).join('') +
+        METRICS.map(function(m){ return metricRowHtml(m, teamTotals[m.key], teamTargets[m.key]); }).join('') +
       '</div>';
     }
 
@@ -1123,14 +1123,20 @@
   }
 
   async function init(){
-    initFirebase();
-    await loadSettingsAndEntries();
-    loadLastSelectedMember();
-    loadAdminSession();
     bindTabs();
     bindAdminForms();
+    try{
+      initFirebase();
+      await loadSettingsAndEntries();
+    }catch(e){
+      console.error('Firebase init/load failed:', e);
+      if(!state.settings) state.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      toast('데이터 연결에 실패했습니다. 새로고침해주세요.');
+    }
+    loadLastSelectedMember();
+    loadAdminSession();
     render();
-    attachRealtimeListeners();
+    try{ attachRealtimeListeners(); }catch(e){ console.error('Realtime listener failed:', e); }
   }
 
   init();
